@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, People, Vehicles, Planets
 #from models import Person
 
 app = Flask(__name__)
@@ -31,6 +31,7 @@ setup_admin(app)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
+###################################################################
 # generate sitemap with all your endpoints
 @app.route('/')
 def sitemap():
@@ -44,6 +45,45 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+###################################################################
+# added routes below
+###################################################################
+
+@app.route('/people', methods=['GET'])
+def handle_people():
+    return "<a href='/..'>Hello People.</a><br /><br /><br /><a href='/people/1'>click for person id #1</a>"
+
+@app.route('/people/<int:person_id>', methods=['PUT','GET'])
+def get_single_person(person_id):
+    if request.method == 'GET':
+        user1 = People.query.get(person_id)
+        return jsonify(user1.serialize()), 200
+    else:
+        return "Person not found",404
+
+@app.route('/planets', methods=['GET'])
+def handle_planets():
+    return "<a href='/..'>Hello Planets.</a><br /><br /><br /><a href='/planets/1'>click for planet id #1</a>"
+
+@app.route('/planets/<int:planet_id>', methods=['PUT','GET'])
+def get_single_planet(planet_id):
+    if request.method == 'GET':
+        planet1 = Planets.query.get(planet_id)
+        return jsonify(planet1.serialize()), 200
+    else:
+        return "Planet not found",404
+
+@app.route('/vehicles', methods=['GET'])
+def handle_vehicles():
+    return "<a href='/..'>Hello Vehicles.</a><br /><br /><br /><a href='/vehicles/4'>click for vehicle id #4</a>"
+
+@app.route('/vehicles/<int:vehicle_id>', methods=['PUT','GET'])
+def get_single_vehicle(vehicle_id):
+    if request.method == 'GET':
+        vehicle1 = Vehicles.query.get(vehicle_id)
+        return jsonify(vehicle1.serialize()), 200
+    else:
+        return "Person not found",404
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
