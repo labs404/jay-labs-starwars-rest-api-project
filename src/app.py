@@ -51,7 +51,7 @@ def handle_hello():
 
 @app.route('/people', methods=['GET'])
 def handle_people():
-    return "<a href='/..'>Hello People.</a><br /><br /><br /><a href='/people/1'>click for person id #1</a>"
+    return "<a href='/..'>Return home from Hello People.</a><br /><br /><br /><a href='/people/1'>click for person id #1</a>"
 
 @app.route('/people/<int:person_id>', methods=['PUT','GET'])
 def get_single_person(person_id):
@@ -63,7 +63,7 @@ def get_single_person(person_id):
 
 @app.route('/planets', methods=['GET'])
 def handle_planets():
-    return "<a href='/..'>Hello Planets.</a><br /><br /><br /><a href='/planets/1'>click for planet id #1</a>"
+    return "<a href='/..'>Return home from Hello Planets.</a><br /><br /><br /><a href='/planets/1'>click for planet id #1</a>"
 
 @app.route('/planets/<int:planet_id>', methods=['PUT','GET'])
 def get_single_planet(planet_id):
@@ -75,7 +75,7 @@ def get_single_planet(planet_id):
 
 @app.route('/vehicles', methods=['GET'])
 def handle_vehicles():
-    return "<a href='/..'>Hello Vehicles.</a><br /><br /><br /><a href='/vehicles/4'>click for vehicle id #4</a>"
+    return "<a href='/..'>Return home from Hello Vehicles.</a><br /><br /><br /><a href='/vehicles/4'>click for vehicle id #4</a>"
 
 @app.route('/vehicles/<int:vehicle_id>', methods=['PUT','GET'])
 def get_single_vehicle(vehicle_id):
