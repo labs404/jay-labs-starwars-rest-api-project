@@ -41,42 +41,6 @@ def sitemap():
 # added routes below
 ###################################################################
 
-@app.route('/people', methods=['GET'])
-def handle_people():
-    return "<a href='/..'>Return home from Hello People.</a><br /><br /><br /><a href='/people/1'>click for person id #1</a>"
-
-@app.route('/people/<int:person_id>', methods=['PUT','GET'])
-def get_single_person(person_id):
-    if request.method == 'GET':
-        user1 = People.query.get(person_id)
-        return jsonify(user1.serialize()), 200
-    else:
-        return "Person not found",404
-
-@app.route('/planets', methods=['GET'])
-def handle_planets():
-    return "<a href='/..'>Return home from Hello Planets.</a><br /><br /><br /><a href='/planets/1'>click for planet id #1</a>"
-
-@app.route('/planets/<int:planet_id>', methods=['PUT','GET'])
-def get_single_planet(planet_id):
-    if request.method == 'GET':
-        planet1 = Planets.query.get(planet_id)
-        return jsonify(planet1.serialize()), 200
-    else:
-        return "Planet not found",404
-
-@app.route('/vehicles', methods=['GET'])
-def handle_vehicles():
-    return "<a href='/..'>Return home from Hello Vehicles.</a><br /><br /><br /><a href='/vehicles/4'>click for vehicle id #4</a>"
-
-@app.route('/vehicles/<int:vehicle_id>', methods=['PUT','GET'])
-def get_single_vehicle(vehicle_id):
-    if request.method == 'GET':
-        vehicle1 = Vehicles.query.get(vehicle_id)
-        return jsonify(vehicle1.serialize()), 200
-    else:
-        return "Person not found",404
-    
 @app.route('/user', methods=['GET'])
 def handle_hello():
 
@@ -86,6 +50,57 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
+
+######################################
+# START get all people/planet/vehicles
+@app.route('/people', methods=['GET'])
+def return_all_people():
+    all_people = People.query.all()
+    all_people = list(map(lambda index: index.serialize(), all_people))
+    response_body = all_people
+    return jsonify(response_body), 200
+
+@app.route('/planets', methods=['GET'])
+def return_all_planets():
+    all_planets = Planets.query.all()
+    all_planets = list(map(lambda index: index.serialize(), all_planets))
+    response_body = all_planets
+    return jsonify(response_body), 200
+
+@app.route('/vehicles', methods=['GET'])
+def return_all_vehicles():
+    all_vehicles = Vehicles.query.all()
+    all_vehicles = list(map(lambda index: index.serialize(), all_vehicles))
+    response_body = all_vehicles
+    return jsonify(response_body), 200
+# END get all people/planet/vehicles
+####################################
+
+
+
+############################################
+# START get individual people/planet/vehicle
+@app.route('/people/<int:person_id>', methods=['GET'])
+def return_single_person(person_id):
+    single_person = People.query.get(person_id)
+    return jsonify(single_person.serialize()), 200
+
+@app.route('/planets/<int:planet_id>', methods=['GET'])
+def return_single_planet(planet_id):
+    single_planet = Planets.query.get(planet_id)
+    return jsonify(single_planet.serialize()), 200
+
+@app.route('/vehicles/<int:vehicle_id>', methods=['GET'])
+def return_single_vehicle(vehicle_id):
+    single_vehicle = Vehicles.query.get(vehicle_id)
+    return jsonify(single_vehicle.serialize()), 200
+# END get individual people/planet/vehicle
+##########################################
+
+
+
+##############################
+# START get all user favorites
 @app.route('/user/favorites', methods=['GET'])
 def get_user_favorites():
     user_favorites = Favorites.query.all()
@@ -94,49 +109,96 @@ def get_user_favorites():
             return jsonify({'message': 'No favorites found'}), 404
         else:
             return jsonify(data=[user_favorites.serialize() for user_favorites in user_favorites]), 200
+# START get all user favorites
+##############################
 
 
-@app.route('/favorite/planet/', methods=['POST'])
-def add_favorite_planet():
 
-    data = request.get_json()
-    new_favorite_planet = Favorites(user_id=data.user_id, planet_id=data["planet_id"])
+#####################################
+# START get individual user favorites
+@app.route('/user/<int:user_id>/favorites/', methods=['GET'])
+def return_individual_user_favorites(user_id):
+    individual_user_favorites = Favorites.query.all()[user_id - 1]
+    returnable_favorites = {
+        "favorite_person": individual_user_favorites.person_id,
+        "favorite_planet": individual_user_favorites.planet_id,
+        "favorite_vehicle": individual_user_favorites.vehicle_id
+    }
+    return jsonify(data=[returnable_favorites])
+# END get individual user favorites
+###################################
+
+
+##############################################################
+# START add and delete favorite person for one individual user
+@app.route('/user/<int:user_id>/favorites/people/<int:person_id>', methods=['POST', 'DELETE'])
+def add_or_delete_favorite_person(user_id, person_id):
+    body = request.get_json()
     if request.method == 'POST':
-        db.session.add(new_favorite_planet)
+        individual_user_favorites = Favorites.query.filter_by(user_id=user_id).first()
+        individual_user_favorites.person_id = person_id
         db.session.commit()
-
-    return jsonify(new_favorite_planet.serialize()), 200
-
-
-@app.route('/favorite/people/', methods=['POST'])
-def add_favorite_people():
-    data = request.get_json()
-    new_favorite_person = Favorites(user_id=data.user_id, person_id=data["person_id"])
-    db.session.add(new_favorite_person)
-    db.session.commit()
-
-    return jsonify(data), 200
-
-
-@app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
-def delete_favorite_planet(planet_id):
-    favorite_planet_to_delete = Favorites.query.get(planet_id)
-    db.session.delete(favorite_planet_to_delete)
-    db.session.commit()
-
-    return jsonify({'message': 'Favorite successfully deleted.'}), 200
+        return jsonify("Person added to favorites",individual_user_favorites.serialize())
+    
+    if request.method == 'DELETE':
+        individual_user_favorites = Favorites.query.filter_by(user_id=user_id).first()
+        individual_user_favorites.person_id = None
+        db.session.commit()
+        return jsonify("Person deleted from favorites", individual_user_favorites.serialize())
+    
+    return "POST or DELETE requests were invalid", 404
+# END add and delete favorite person for one individual user
+# ##########################################################
 
 
-@app.route('/favorite/people/<int:person_id>', methods=['DELETE'])
-def delete_favorite_people(person_id):
-    favorite_person_to_delete = Favorites.query.get(person_id)
-    db.session.delete(favorite_person_to_delete)
-    db.session.commit()
 
-    return jsonify({'message': 'Favorite successfully deleted.'}), 200
+##############################################################
+# START add and delete favorite planet for one individual user
+@app.route('/user/<int:user_id>/favorites/planets/<int:planet_id>', methods=['POST', 'DELETE'])
+def add_or_delete_favorite_planet(user_id, planet_id):
+    body = request.get_json()
+    if request.method == 'POST':
+        individual_user_favorites = Favorites.query.filter_by(user_id=user_id).first()
+        individual_user_favorites.planet_id = planet_id
+        db.session.commit()
+        return jsonify("Planet added to favorites",individual_user_favorites.serialize())
+    
+    if request.method == 'DELETE':
+        individual_user_favorites = Favorites.query.filter_by(user_id=user_id).first()
+        individual_user_favorites.planet_id = None
+        db.session.commit()
+        return jsonify("Planet deleted from favorites", individual_user_favorites.serialize())
+    
+    return "POST or DELETE requests were invalid", 404
+# END add and delete favorite planet for one individual user
+# ##########################################################
+
+
+
+##############################################################
+# START add and delete vehicle person for one individual user
+@app.route('/user/<int:user_id>/favorites/vehicles/<int:vehicle_id>', methods=['POST', 'DELETE'])
+def add_or_delete_favorite_vehicle(user_id, vehicle_id):
+    body = request.get_json()
+    if request.method == 'POST':
+        individual_user_favorites = Favorites.query.filter_by(user_id=user_id).first()
+        individual_user_favorites.vehicle_id = vehicle_id
+        db.session.commit()
+        return jsonify("Vehicle added to favorites",individual_user_favorites.serialize())
+    
+    if request.method == 'DELETE':
+        individual_user_favorites = Favorites.query.filter_by(user_id=user_id).first()
+        individual_user_favorites.vehicle_id = None
+        db.session.commit()
+        return jsonify("Vehicle deleted from favorites", individual_user_favorites.serialize())
+    
+    return "POST or DELETE requests were invalid", 404
+# END add and delete vehicle person for one individual user
+# ##########################################################
+
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=PORT, debug=False)
-

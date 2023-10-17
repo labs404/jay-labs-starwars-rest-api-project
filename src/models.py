@@ -8,7 +8,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
-
+    
     def __repr__(self):
         return self.email
 
@@ -56,7 +56,6 @@ class Planets(db.Model):
     terrain = db.Column(db.String(30), nullable=False)
     description = db.Column(db.String(30), nullable=False)
 
-
     def serialize(self):
         return {
             "id": self.id,
@@ -84,7 +83,6 @@ class Vehicles(db.Model):
     consumables = db.Column(db.String(50), nullable=True)
     vehicle_class = db.Column(db.String(50), nullable=True)
 
-
     def serialize(self):
         return {
             "id": self.id,
@@ -110,7 +108,6 @@ class Favorites(db.Model):
     planets = db.relationship(Planets)
     vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicles.id'), nullable=True)
     vehicles = db.relationship(Vehicles)
-
 
     def serialize(self):
         return {
